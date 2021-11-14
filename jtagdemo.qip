@@ -1,0 +1,7 @@
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) mist/jtagdemo_top.sv]
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) mist-modules/mist_core.qip]
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) DeMiSTify/EightThirtyTwo/RTL/debug_bridge_jtag.qip]
+set_global_assignment -name SDC_FILE [file join $::quartus(qip_path) mist/constraints.sdc]
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) rtl/jtagdemo.sv]
+set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) rtl/video_timings.vhd]
+
