@@ -60,5 +60,5 @@ mist:
 	@echo -n "Compiling $(PROJECT) for mist... "
 	@$(Q13)/quartus_sh >compile.log --flow compile mist/$(PROJECT)_MiST.qpf \
 		&& echo "\033[32mSuccess\033[0m" || grep Error compile.log
-	@grep -r Design-wide\ TNS mist/output_files/*.rpt
+	@grep -r Design-wide\ TNS mist/*.rpt
 
