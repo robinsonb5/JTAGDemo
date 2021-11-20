@@ -7,9 +7,12 @@ BOARD=
 ROMSIZE1=8192
 ROMSIZE2=4096
 
-all: $(DEMISTIFYPATH)/site.mk $(SUBMODULES) firmware init compile tns mist
+all: $(DEMISTIFYPATH)/site.template $(DEMISTIFYPATH)/site.mk $(SUBMODULES) firmware init compile tns mist
+# Use the file least likely to change within DeMiSTify to detect submodules!
+$(DEMISTIFYPATH)/COPYING:
+	git submodule update --init --recursive
 
-$(DEMISTIFYPATH)/site.mk:
+$(DEMISTIFYPATH)/site.mk: $(DEMISTIFYPATH)/COPYING
 	$(info ******************************************************)
 	$(info Please copy the example DeMiSTify/site.template file to)
 	$(info DeMiSTify/site.mk and edit the paths for the version(s))
@@ -54,5 +57,8 @@ tns:
 
 .PHONY: mist
 mist:
-	$(Q13)/quartus_sh --flow compile mist/$(PROJECT)_MiST.qpf
+	@echo -n "Compiling $(PROJECT) for mist... "
+	@$(Q13)/quartus_sh >compile.log --flow compile mist/$(PROJECT)_MiST.qpf \
+		&& echo "\033[32mSuccess\033[0m" || grep Error compile.log
+	@grep -r Design-wide\ TNS mist/output_files/*.rpt
 
