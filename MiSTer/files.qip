@@ -1,0 +1,5 @@
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) emu.sv]
+set_global_assignment -name SDC_FILE [file join $::quartus(qip_path) constraints.sdc]
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../rtl/jtagdemo.sv]
+set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) ../rtl/video_timings.vhd]
+
