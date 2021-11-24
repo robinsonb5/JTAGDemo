@@ -4,3 +4,6 @@
 [submodule "DeMiSTify"]
 	path = DeMiSTify
 	url = https://github.com/robinsonb5/DeMiSTify.git
+[submodule "Template_MiSTer"]
+	path = Template_MiSTer
+	url = https://github.com/MiSTer-devel/Template_MiSTer.git
