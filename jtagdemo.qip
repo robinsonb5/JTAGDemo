@@ -4,4 +4,6 @@ set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) DeMiSTify/E
 set_global_assignment -name SDC_FILE [file join $::quartus(qip_path) mist/constraints.sdc]
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) rtl/jtagdemo.sv]
 set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) rtl/video_timings.vhd]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) rtl/lfsr.v]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) rtl/hybrid_pwm_sd_2ndorder.v]
 

@@ -52,6 +52,11 @@ module jtagdemo_top (
    output [5:0]  VGA_G,
    output [5:0]  VGA_B,
 
+`ifdef DEMISTIFY
+	output [15:0] DAC_L,	// For boards which have I2S audio output
+	output [15:0] DAC_R,
+`endif
+	
    input     UART_RX,
    output    UART_TX
 );
@@ -133,8 +138,8 @@ mist_video #(.COLOR_DEPTH(6), .OSD_COLOR(3'd5), .SD_HCNT_WIDTH(10), .OSD_AUTO_CE
 	.VGA_HS      ( VGA_HS     )
 );
 
-assign AUDIO_L=1'b1;
-assign AUDIO_R=1'b1;
+//assign AUDIO_L=1'b1;
+//assign AUDIO_R=1'b1;
 
 // A PLL to derive the system clock from the MiSTs 27MHz
 
@@ -149,6 +154,9 @@ pll pll (
 );
 
 
+wire [15:0] snd_l;
+wire [15:0] snd_r;
+
 jtagdemo #(.sysclk_frequency(1000)) test (
 	.clk(sysclk),
 	.reset_in(pll_locked & !status[0]),
@@ -157,7 +165,19 @@ jtagdemo #(.sysclk_frequency(1000)) test (
 	.r(r),
 	.g(g),
 	.b(b),
+	.audio_l(snd_l),
+	.audio_r(snd_r),
 	.status(status)
+);
+
+
+hybrid_pwm_sd_2ndorder dac (
+	.clk(vidclk),
+	.reset_n(pll_locked & !status[0]),
+	.d_l(snd_l),
+	.q_l(AUDIO_L),
+	.d_r(snd_r),
+	.q_r(AUDIO_R)
 );
 
 endmodule

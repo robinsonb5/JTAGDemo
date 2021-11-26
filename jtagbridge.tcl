@@ -13,12 +13,18 @@ proc updatedisplay {} {
 	global red
 	global green
 	global blue
+	global cutoff
 	global status
 	global framecount
 
 	if {$connected} {
 		if [ vjtag::usbblaster_open ] {
-			vjtag::send [expr $red * 256 * 256 + $green * 256 + $blue]
+			# CMD 0, set RGB
+			vjtag::send [expr $red * 256 * 256 + $green * 256 + $blue ]
+			# CMD 1, set filter cutoff
+			vjtag::send [expr 256 * 256 * 256 + $cutoff ]
+			# CMD 0xfe, report
+			vjtag::send [expr 254 * 256 * 256 * 256 ]
 			set framecount [vjtag::recv_blocking]
 			set status [vjtag::dec2bin [vjtag::recv_blocking] 32]
 			# A dummy read to clear the FIFO if sync was lost and it contains stale data.
@@ -70,6 +76,7 @@ global framecount
 set red 128
 set green 128
 set blue 128
+set cutoff 0
 set status 0
 set framecount 0
 
@@ -96,26 +103,30 @@ grid .lblConn -in .frmLayout -row 1 -column 2 -rowspan 2 -padx 5 -pady 5
 label .lblred -anchor se -text "Red:"
 label .lblgreen -anchor se -text "Green:"
 label .lblblue -anchor se -text "Blue:"
+label .lblcutoff -anchor se -text "Filter cutoff:"
 label .lblframes -anchor se -text "Frame count:"
 label .lblstat -anchor se -text "Status word:"
 
 scale .sclgreen -from 0 -to 255 -resolution 1 -orient horizontal -variable green
 scale .sclblue -from 0 -to 255 -resolution 1 -orient horizontal -variable blue
 scale .sclred -from 0 -to 255 -resolution 1 -orient horizontal -variable red
+scale .sclcutoff -from 0 -to 4095 -resolution 1 -orient horizontal -variable cutoff
 label .lblframecount -anchor w -textvariable framecount
 label .lblstatword -anchor w -textvariable status
 
 grid .lblred -in .frmLayout -row 3 -column 1 -sticky nesw -pady 5
 grid .lblgreen -in .frmLayout -row 4 -column 1 -sticky nesw -pady 5
 grid .lblblue -in .frmLayout -row 5 -column 1 -sticky nesw -pady 5
-grid .lblframes -in .frmLayout -row 6 -column 1 -sticky ew -pady 5
-grid .lblstat -in .frmLayout -row 7 -column 1 -sticky ew -pady 5
+grid .lblcutoff -in .frmLayout -row 6 -column 1 -sticky nesw -pady 5
+grid .lblframes -in .frmLayout -row 7 -column 1 -sticky ew -pady 5
+grid .lblstat -in .frmLayout -row 8 -column 1 -sticky ew -pady 5
 
 grid .sclred -in .frmLayout -row 3 -column 2 -sticky ew -padx 5
 grid .sclgreen -in .frmLayout -row 4 -column 2 -sticky ew -padx 5
 grid .sclblue -in .frmLayout -row 5 -column 2 -sticky ew -padx 5
-grid .lblframecount -in .frmLayout -row 6 -column 2 -sticky ew  -padx 5 -pady 5
-grid .lblstatword -in .frmLayout -row 7 -column 2 -sticky ew -padx 5
+grid .sclcutoff -in .frmLayout -row 6 -column 2 -sticky ew -padx 5
+grid .lblframecount -in .frmLayout -row 7 -column 2 -sticky ew  -padx 5 -pady 5
+grid .lblstatword -in .frmLayout -row 8 -column 2 -sticky ew -padx 5
 
 update
 
