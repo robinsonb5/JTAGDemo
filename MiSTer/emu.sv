@@ -185,8 +185,8 @@ assign VGA_SCALER = 0;
 assign HDMI_FREEZE = 0;
 
 assign AUDIO_S = 0;
-assign AUDIO_L = 0;
-assign AUDIO_R = 0;
+//assign AUDIO_L = 0;
+//assign AUDIO_R = 0;
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;
@@ -283,7 +283,9 @@ jtagdemo #(.sysclk_frequency(1000)) test (
 	.g(VGA_G),
 	.b(VGA_B),
 	.vena(VGA_DE),
-	.pixel(CE_PIXEL)
+	.pixel(CE_PIXEL),
+	.audio_l(AUDIO_L),
+	.audio_r(AUDIO_R)
 );
 
 assign CLK_VIDEO = clk_sys;
