@@ -16,31 +16,29 @@ module jtagdemo #(parameter sysclk_frequency=1000) (
 );
 
 
+// Parameters which are remotely controlled from the host computer:
+
 reg [11:0] filterval;
+reg chirp;
+reg [11:0] chirpctr;
+reg [11:0] ksperiod;
+reg [11:0] ksfilterperiod;
 reg [7:0] red;
 reg [7:0] green;
 reg [7:0] blue;
-reg [31:0] framecount;
 
-reg jtag_reset=1'b1;
+reg jtag_reset=1'b0;
 reg jtag_report=1'b0;
-
-wire reset_n;
-assign reset_n = jtag_reset & reset_in;
-
-
-localparam JTAG_IDX_MAX=2;
-
-
-wire jtag_req;
-wire jtag_ack;
-wire jtag_wr;
-reg [3:0] jtag_idx=JTAG_IDX_MAX;
-reg [31:0] jtag_d;
-wire [31:0] jtag_q;
 
 
 // Data sent to the host computer 
+
+localparam JTAG_IDX_MAX=2;
+
+reg [31:0] framecount;
+
+reg [3:0] jtag_idx=JTAG_IDX_MAX;
+reg [31:0] jtag_d;
 
 always @(posedge clk) begin
 		case(jtag_idx)
@@ -52,9 +50,15 @@ end
 
 // Data received from the host computer
 
+wire jtag_req;
+wire jtag_ack;
+wire jtag_wr;
+wire [31:0] jtag_q;
+
 always @(posedge clk) begin
-	jtag_reset<=1'b1;
+	jtag_reset<=1'b0;
 	jtag_report<=1'b0;
+	chirp<=1'b0;
 	if(jtag_ack && !jtag_wr) begin
 		case(jtag_q[31:24]) // Interpret the highest 8 bits as a command byte
 
@@ -66,9 +70,15 @@ always @(posedge clk) begin
 
 			8'h01: filterval <= jtag_q[11:0];	// Command 1: Filter delay
 
+			8'h02: ksperiod <= jtag_q[11:0];	// Command 2: Karplus Strong delay
+
+			8'h03: ksfilterperiod <= jtag_q[11:0];	// Command 2: Karplus Strong delay
+
+			8'hfd: chirp<=1'b1;
+			
 			8'hfe: jtag_report<=1'b1;
 
-			8'hff: jtag_reset<=1'b0; // Command 0xff: reset
+			8'hff: jtag_reset<=1'b1; // Command 0xff: reset
 
 		endcase
 	end
@@ -110,6 +120,9 @@ debug_bridge_jtag #(.id('h55aa)) bridge (
 	.ack(jtag_ack)
 );
 
+
+wire reset_n;
+assign reset_n = ~jtag_reset & reset_in;
 
 
 // Video timings / frame generation
@@ -180,7 +193,7 @@ always @(posedge clk) begin
 end
 
 
-// Filter
+// Lowpass filter following LFSR
 
 reg filter_ena;
 reg [11:0] filtertick;
@@ -195,10 +208,8 @@ end
 
 wire [15:0] filterdata_l;
 wire [15:0] filterdata_r;
-wire [15:0] filterdata2_l;
-wire [15:0] filterdata2_r;
 
-iirfilter_stereo #(.signalwidth(15),.cbits(4),.immediate(0), .highpass(0))
+iirfilter_stereo #(.signalwidth(16),.cbits(4),.highpass(0)) lpfilter
 (
 	.clk(clk),
 	.reset_n(reset_n),
@@ -209,7 +220,13 @@ iirfilter_stereo #(.signalwidth(15),.cbits(4),.immediate(0), .highpass(0))
 	.q_r(filterdata_r)
 );
 
-iirfilter_stereo #(.signalwidth(15),.cbits(4),.immediate(0), .highpass(1))
+
+// Highpass filter following previous lowpass filter
+
+wire [15:0] filterdata2_l;
+wire [15:0] filterdata2_r;
+
+iirfilter_stereo #(.signalwidth(16),.cbits(4),.highpass(1)) hpfilter
 (
 	.clk(clk),
 	.reset_n(reset_n),
@@ -220,8 +237,68 @@ iirfilter_stereo #(.signalwidth(15),.cbits(4),.immediate(0), .highpass(1))
 	.q_r(filterdata2_r)
 );
 
-assign audio_l=filterdata2_l;
-assign audio_r=filterdata2_r;
+
+// Karplus-Strong waveguide
+
+// period tick, and initial excitement burst
+
+reg ks_ena;
+reg [11:0] kstick;
+always @(posedge clk) begin
+	kstick<=kstick-1'b1;
+	ks_ena<=1'b0;
+
+	if(chirp)
+		chirpctr<=chirpctr-1'b1;
+
+	if(!kstick) begin
+		kstick<=ksperiod;
+		ks_ena<=1'b1;
+		if(chirpctr)
+			chirpctr<=chirpctr-1'b1;
+	end
+end
+
+
+// Filter tick
+
+reg ksfilter_ena;
+reg [11:0] ksfiltertick;
+always @(posedge clk) begin
+	ksfiltertick<=ksfiltertick-1'b1;
+	ksfilter_ena<=1'b0;
+	if(!ksfiltertick) begin
+		ksfiltertick<=ksfilterperiod;
+		ksfilter_ena<=1'b1;
+	end
+end
+
+
+wire [15:0] ksdata_l;
+wire [15:0] ksdata_r;
+
+karplus_strong ks1 
+(
+	.clk(clk),
+	.reset_n(reset_n),
+	.ena(ks_ena),
+	.filter_ena(ksfilter_ena),
+	.d(chirpctr ? filterdata2_l : 16'h0000),
+	.q(ksdata_l)
+);
+
+karplus_strong ks2
+(
+	.clk(clk),
+	.reset_n(reset_n),
+	.ena(ks_ena),
+	.filter_ena(ksfilter_ena),
+	.d(chirpctr ? filterdata2_r : 16'h0000),
+	.q(ksdata_r)
+);
+
+assign audio_l=ksdata_l;
+assign audio_r=ksdata_r;
 
 endmodule
 
