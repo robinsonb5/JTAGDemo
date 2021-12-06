@@ -104,9 +104,7 @@ begin
 					-- Vertical counters
 
 					if vcounter=vbstart then
-						if hcounter=0 then
-							vblank_stb<='1';
-						end if;
+						vblank_stb<='1';
 						vb_internal<='0';
 					end if;
 				

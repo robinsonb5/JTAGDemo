@@ -68,8 +68,9 @@ module jtagdemo_top (
 `include "build_id.v"
 parameter CONF_STR = {
         "JTAGDemo;;",
-        "O1,Option 1,On,Off;",
-        "O23,Option 2,A,B,C,D;",
+        "O2,Option 1,On,Off;",
+        "O34,Option 2,A,B,C,D;",
+        "T1,Trigger Sound;",
         "T0,Reset;",
         "V",`BUILD_DATE
 };

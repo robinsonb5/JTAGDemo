@@ -15,14 +15,17 @@ module jtagdemo #(parameter sysclk_frequency=1000) (
 	input [31:0] status
 );
 
+// Aliases for controls within the status word
+
+wire st_trigger = status[1]; // Trigger sound
 
 // Parameters which are remotely controlled from the host computer:
 
-reg [11:0] filterval;
+reg [11:0] filterval = 12'h20;
 reg chirp;
 reg [11:0] chirpctr;
-reg [11:0] ksperiod;
-reg [11:0] ksfilterperiod;
+reg [11:0] ksperiod = 12'h20;
+reg [11:0] ksfilterperiod = 12'h20;
 reg [7:0] red;
 reg [7:0] green;
 reg [7:0] blue;
@@ -248,7 +251,7 @@ always @(posedge clk) begin
 	kstick<=kstick-1'b1;
 	ks_ena<=1'b0;
 
-	if(chirp)
+	if(chirp || st_trigger)
 		chirpctr<=chirpctr-1'b1;
 
 	if(!kstick) begin

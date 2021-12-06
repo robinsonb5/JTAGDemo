@@ -23,7 +23,7 @@ module  pll_0002(
 		.operation_mode("direct"),
 		.number_of_clocks(2),
 		.output_clock_frequency0("100.000000 MHz"),
-		.phase_shift0("-2500 ps"),
+		.phase_shift0("-5250 ps"),
 		.duty_cycle0(50),
 		.output_clock_frequency1("100.000000 MHz"),
 		.phase_shift1("0 ps"),

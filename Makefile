@@ -62,3 +62,9 @@ mist:
 		&& echo "\033[32mSuccess\033[0m" || grep Error compile.log
 	@grep -r Design-wide\ TNS mist/*.rpt
 
+.PHONY: mister
+mister:
+	@echo -n "Compiling $(PROJECT) for MiSTer... "
+	@$(QUARTUS_MISTER)/quartus_sh >MiSTer/compile.log --flow compile MiSTer/$(PROJECT).qpf \
+		&& echo "\033[32mSuccess\033[0m" || grep Error MiSTer/compile.log
+
