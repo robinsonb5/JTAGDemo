@@ -285,7 +285,6 @@ set_global_assignment -name CDF_FILE jtag.cdf
 set_global_assignment -name QIP_FILE sys/sys.qip
 set_global_assignment -name QIP_FILE files.qip
 set_global_assignment -name QIP_FILE ../DeMiSTify/EightThirtyTwo/RTL/debug_bridge_jtag.qip
-set_global_assignment -name SDC_FILE constraints.sdc
 set_instance_assignment -name FAST_OUTPUT_REGISTER ON -to SDRAM_CKE
 set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SDRAM_DQ[0]
 set_instance_assignment -name FAST_INPUT_REGISTER ON -to SDRAM_DQ[0]

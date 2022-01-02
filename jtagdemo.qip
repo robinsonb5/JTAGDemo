@@ -7,3 +7,4 @@ set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) rtl/video_
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) rtl/lfsr.v]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) rtl/hybrid_pwm_sd_2ndorder.v]
 set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) rtl/karplus_strong.v]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) rtl/iirbandpass.v]

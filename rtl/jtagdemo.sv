@@ -18,6 +18,7 @@ module jtagdemo #(parameter sysclk_frequency=1000) (
 // Aliases for controls within the status word
 
 wire st_trigger = status[1]; // Trigger sound
+wire st_bpflute = status[5];
 
 // Parameters which are remotely controlled from the host computer:
 
@@ -26,6 +27,7 @@ reg chirp;
 reg [11:0] chirpctr;
 reg [11:0] ksperiod = 12'h20;
 reg [11:0] ksfilterperiod = 12'h20;
+reg [11:0] bpperiod = 12'h0400;
 reg [7:0] red;
 reg [7:0] green;
 reg [7:0] blue;
@@ -76,6 +78,8 @@ always @(posedge clk) begin
 			8'h02: ksperiod <= jtag_q[11:0];	// Command 2: Karplus Strong delay
 
 			8'h03: ksfilterperiod <= jtag_q[11:0];	// Command 2: Karplus Strong delay
+
+			8'h04: bpperiod <= jtag_q[11:0];	// Command 2: Karplus Strong delay
 
 			8'hfd: chirp<=1'b1;
 			
@@ -196,7 +200,7 @@ lfsr #(.width(32)) lfsr
 (
 	.clk(clk),
 	.reset_n(reset_n),
-	.e(lfsr_ena),
+	.e(st_bpflute ? bp_ena : filter_ena),
 	.save(1'b0),
 	.restore(1'b0),
 	.q(lfsrdata)
@@ -317,8 +321,49 @@ karplus_strong ks2
 	.q(ksdata_r)
 );
 
-assign audio_l=ksdata_l;
-assign audio_r=ksdata_r;
+
+// IIR bandpass waveguide
+
+// period tick
+
+reg bp_ena;
+reg [11:0] bptick;
+always @(posedge clk) begin
+	bptick<=bptick-1'b1;
+	bp_ena<=1'b0;
+
+	if(!bptick) begin
+		bptick<=bpperiod;
+		bp_ena<=1'b1;
+	end
+end
+
+wire [23:0] bpdata_l;
+wire [23:0] bpdata_r;
+
+iirbandpass #(.inputwidth(16),.outputwidth(24)) bp_l
+(
+	.clk(clk),
+	.reset_n(reset_n),
+	.ena(bp_ena),
+	.d(lfsrdata[31:16]),
+	.q(bpdata_l)
+);
+
+iirbandpass #(.inputwidth(16),.outputwidth(24)) bp_r
+(
+	.clk(clk),
+	.reset_n(reset_n),
+	.ena(bp_ena),
+	.d(lfsrdata[15:0]),
+	.q(bpdata_r)
+);
+
+assign audio_l=status[5] ? {~bpdata_l[23],bpdata_l[22:8]} : ksdata_l;
+assign audio_r=status[5] ? {~bpdata_r[23],bpdata_r[22:8]} : ksdata_r;
+
+//assign audio_l=ksdata_l;
+//assign audio_r=ksdata_r;
 
 endmodule
 

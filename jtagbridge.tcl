@@ -16,6 +16,7 @@ proc updatedisplay {} {
 	global cutoff
 	global ksval
 	global ksperiod
+	global bpperiod
 	global status
 	global framecount
 
@@ -29,6 +30,8 @@ proc updatedisplay {} {
 			vjtag::send [expr (2<<24) + $ksval ]
 			# CMD 3, set Karplus-Strong period
 			vjtag::send [expr (3<<24) + $ksperiod ]
+			# CMD 4, set Bandpass period
+			vjtag::send [expr (4<<24) + $bpperiod ]
 			# CMD 0xfe, report
 			vjtag::send [expr (0xfe << 24) ]
 			set framecount [vjtag::recv_blocking]
@@ -97,6 +100,7 @@ set blue 128
 set cutoff 512
 set ksval 96
 set ksperiod 96
+set bpperiod 1024
 set status 0
 set framecount 0
 
@@ -157,20 +161,24 @@ grid columnconfigure .frmSynth 1 -weight 1
 label .lblcutoff -anchor se -text "Noise filter period:"
 label .lblksval -anchor se -text "Karplus-Strong period:"
 label .lblksper -anchor se -text "KS Filter period:"
+label .lblbpper -anchor se -text "Bandpass 'flute' period:"
 
 scale .sclcutoff -from 1 -to 4095 -resolution 1 -orient horizontal -variable cutoff
 scale .sclksval -from 1 -to 1024 -resolution 1 -orient horizontal -variable ksval
 scale .sclksper -from 1 -to 1024 -resolution 1 -orient horizontal -variable ksperiod
 button .btnInitiate -text "Initiate sound" -command "send_chirp"
+scale .sclbpper -from 256 -to 2048 -resolution 1 -orient horizontal -variable bpperiod
 
 grid .lblcutoff -in .frmSynth -row 6 -column 0 -sticky nesw -pady 5
 grid .lblksval -in .frmSynth -row 7 -column 0 -sticky nesw -pady 5
 grid .lblksper -in .frmSynth -row 8 -column 0 -sticky nesw -pady 5
 grid .btnInitiate -in .frmSynth -row 9 -column 0 -columnspan 2 -sticky nesw -pady 5
+grid .lblbpper -in .frmSynth -row 10 -column 0 -sticky nesw -pady 5
 
 grid .sclcutoff -in .frmSynth -row 6 -column 1 -sticky ew -padx 5
 grid .sclksval -in .frmSynth -row 7 -column 1 -sticky ew -padx 5
 grid .sclksper -in .frmSynth -row 8 -column 1 -sticky ew -padx 5
+grid .sclbpper -in .frmSynth -row 10 -column 1 -sticky ew -padx 5
 
 
 # Frame / Status display
@@ -185,10 +193,10 @@ label .lblstat -anchor se -text "Status word:"
 label .lblframecount -anchor w -textvariable framecount
 label .lblstatword -anchor w -textvariable status
 
-grid .lblframes -in .frmStatus -row 10 -column 0 -sticky ew -pady 5
-grid .lblstat -in .frmStatus -row 11 -column 0 -sticky ew -pady 5
-grid .lblframecount -in .frmStatus -row 10 -column 1 -sticky ew  -padx 5 -pady 5
-grid .lblstatword -in .frmStatus -row 11 -column 1 -sticky ew -padx 5
+grid .lblframes -in .frmStatus -row 20 -column 0 -sticky ew -pady 5
+grid .lblstat -in .frmStatus -row 21 -column 0 -sticky ew -pady 5
+grid .lblframecount -in .frmStatus -row 20 -column 1 -sticky ew  -padx 5 -pady 5
+grid .lblstatword -in .frmStatus -row 21 -column 1 -sticky ew -padx 5
 
 update
 

@@ -73,9 +73,10 @@ module jtagdemo_top (
 `include "build_id.v"
 parameter CONF_STR = {
         "JTAGDemo;;",
-        "O2,Option 1,On,Off;",
+        "O2,Option 1,Off,On;",
         "O34,Option 2,A,B,C,D;",
-        "T1,Trigger Sound;",
+        "O5,Bandpass \"flute\",Off,On;",
+        "T1,Trigger KS Synth;",
         "T0,Reset;",
         "V",`BUILD_DATE
 };

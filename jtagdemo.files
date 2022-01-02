@@ -6,6 +6,7 @@ rtl/video_timings.vhd
 rtl/lfsr.v
 rtl/hybrid_pwm_sd_2ndorder.v
 rtl/karplus_strong.v
+rtl/iirbandpass.v
 mist-modules/user_io.v
 mist-modules/data_io.v
 mist-modules/mist_video.v
