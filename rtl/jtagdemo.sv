@@ -113,7 +113,8 @@ end
 
 // This bridge is borrowed from the EightThirtyTwo debug interface
 
-debug_bridge_jtag #(.id('h55aa)) bridge (
+//debug_bridge_jtag #(.id('h55aa)) bridge (
+debug_bridge_jtag bridge (
 	.clk(clk),
 	.reset_n(reset_n),
 	.d(jtag_d),
@@ -131,6 +132,9 @@ assign reset_n = ~jtag_reset & reset_in;
 // Video timings / frame generation
 
 wire [10:0] xpos;
+wire [10:0] ypos;
+wire hs_i;
+wire vs_i;
 wire hb;
 wire vb;
 wire vb_stb;
@@ -138,22 +142,35 @@ wire vb_stb;
 video_timings vt
 (
 	.clk(clk),
-	.reset_n(reset_n),
-	.hsync_n(hs),
-	.vsync_n(vs),
+	.reset_n(1'b1),
+	.hsync_n(hs_i),
+	.vsync_n(vs_i),
 	.hblank_n(hb),
 	.vblank_n(vb),
 	.vblank_stb(vb_stb),
 	.xpos(xpos),
-	.pixel_stb(pixel)
+	.ypos(ypos),
+	.pixel_stb(pixel),
+
+	.clkdiv(3),
+	
+	.htotal(11'd800),
+	.hbstart(11'd640),
+	.hsstart(11'd656),
+	.hsstop(11'd752),
+
+	.vtotal(11'd523),
+	.vbstart(11'd480),
+	.vsstart(11'd491),
+	.vsstop(11'd493) 
 );
 
+assign hs = hs_i;
+assign vs = vs_i;
 assign vena=hb&vb;
-reg vb_d;
 
 always @(posedge clk) begin
-	vb_d<=vb;
-	if(vb & !vb_d)
+	if(vb_stb)
 		framecount<=framecount+1;
 	if(hb&vb) begin
 		r<=red;

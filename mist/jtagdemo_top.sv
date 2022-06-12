@@ -15,6 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 //
 
+`default_nettype none
+
 module jtagdemo_top (
    input  	 CLOCK_27,
 
@@ -51,8 +53,11 @@ module jtagdemo_top (
    output [5:0]  VGA_R,
    output [5:0]  VGA_G,
    output [5:0]  VGA_B,
-
 `ifdef DEMISTIFY
+	output        VGA_CLK,
+	output        VGA_WINDOW,
+	output        VGA_PIXEL,
+	output        CORE_CLK,
 	output [15:0] DAC_L,	// For boards which have I2S audio output
 	output [15:0] DAC_R,
 `endif
@@ -139,6 +144,12 @@ mist_video #(.COLOR_DEPTH(6), .OSD_COLOR(3'd5), .SD_HCNT_WIDTH(10), .OSD_AUTO_CE
 	.VGA_HS      ( VGA_HS     )
 );
 
+//assign VGA_R = r[7:2];
+//assign VGA_G = g[7:2];
+//assign VGA_B = b[7:2];
+//assign VGA_HS = hs;
+//assign VGA_VS = vs;
+
 //assign AUDIO_L=1'b1;
 //assign AUDIO_R=1'b1;
 
@@ -151,8 +162,15 @@ pll pll (
 	.c0      ( SDRAM_CLK ),
 	.c1      ( sysclk    ),
 	.c2      ( vidclk    ),
+`ifdef DEMISTIFY_HDMI
+	.c3	     (VGA_CLK),
+`endif
 	.locked  ( pll_locked )
 );
+
+`ifdef DEMISTIFY_HDMI
+assign CORE_CLK = sysclk;
+`endif
 
 
 wire [15:0] snd_l;
@@ -160,17 +178,25 @@ wire [15:0] snd_r;
 
 jtagdemo #(.sysclk_frequency(1000)) test (
 	.clk(sysclk),
-	.reset_in(pll_locked & !status[0]),
+	.reset_in(pll_locked),// & !status[0]),
 	.hs(hs),
 	.vs(vs),
 	.r(r),
 	.g(g),
 	.b(b),
+`ifdef DEMISTIFY_HDMI
+	.vena(VGA_WINDOW),
+	.pixel(VGA_PIXEL),
+`endif
 	.audio_l(snd_l),
 	.audio_r(snd_r),
 	.status(status)
 );
 
+`ifdef DEMISTIFY
+assign DAC_L = {~snd_l[15],snd_l[14:0]};
+assign DAC_R = {~snd_r[15],snd_r[14:0]};
+`endif
 
 hybrid_pwm_sd_2ndorder dac (
 	.clk(vidclk),

@@ -7,7 +7,24 @@ BOARD=
 ROMSIZE1=8192
 ROMSIZE2=4096
 
-all: $(DEMISTIFYPATH)/site.template $(DEMISTIFYPATH)/site.mk $(SUBMODULES) firmware init compile tns mist
+all: $(DEMISTIFYPATH)/site.template $(DEMISTIFYPATH)/site.mk $(SUBMODULES)
+	$(info JTAG Demo project.)
+	$(info )
+	$(info Building)
+	$(info ~~~~~~~~)
+	$(info > make BOARDS=board1\ board2.... compile )
+	$(info to build the project for the selected board.)
+	$(info )
+	$(info > make BOARDS=board config )
+	$(info to load the bitstream into the FPGA. [currently Lattice only])
+	$(info )
+	$(info > make BOARDS=board demo )
+	$(info to run a demo JTAG script. [currently Lattice only])
+	$(info )
+	$(info > /path/to/quartus_stp -t jtagbridge.tcl)
+	$(info to run a Tcl/Tk-based GUI to communicate with the design [Altera/Intel only])
+	$(info )
+
 # Use the file least likely to change within DeMiSTify to detect submodules!
 $(DEMISTIFYPATH)/COPYING:
 	git submodule update --init --recursive
@@ -28,6 +45,10 @@ $(DEMISTIFYPATH)/EightThirtyTwo/Makefile:
 $(SUBMODULES): $(DEMISTIFYPATH)/EightThirtyTwo/Makefile
 	make -C $(DEMISTIFYPATH) -f bootstrap.mk
 
+.PHONY: demo
+demo:
+	openocd -f DeMiSTify/Board/$(BOARDS)/target.cfg -f jtagdemo_oocd.tcl
+
 .PHONY: firmware
 firmware: $(SUBMODULES)
 	make -C firmware -f ../$(DEMISTIFYPATH)/firmware/Makefile DEMISTIFYPATH=../$(DEMISTIFYPATH) ROMSIZE1=$(ROMSIZE1) ROMSIZE2=$(ROMSIZE2)
@@ -41,8 +62,12 @@ init:
 	make -f $(DEMISTIFYPATH)/Makefile DEMISTIFYPATH=$(DEMISTIFYPATH) PROJECTTOROOT=$(PROJECTTOROOT) PROJECTPATH=$(PROJECTPATH) PROJECTS=$(PROJECT) BOARD=$(BOARD) init 
 
 .PHONY: compile
-compile: 
+compile: firmware
 	make -f $(DEMISTIFYPATH)/Makefile DEMISTIFYPATH=$(DEMISTIFYPATH) PROJECTTOROOT=$(PROJECTTOROOT) PROJECTPATH=$(PROJECTPATH) PROJECTS=$(PROJECT) BOARD=$(BOARD) compile
+
+.PHONY: config
+config: compile
+	make -f $(DEMISTIFYPATH)/Makefile DEMISTIFYPATH=$(DEMISTIFYPATH) PROJECTTOROOT=$(PROJECTTOROOT) PROJECTPATH=$(PROJECTPATH) PROJECTS=$(PROJECT) BOARD=$(BOARD) config
 
 .PHONY: clean
 clean:
