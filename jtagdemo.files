@@ -1,5 +1,4 @@
 mist/jtagdemo_top.sv
-mist-modules/mist_core.qip
 mist/constraints.sdc
 rtl/jtagdemo.sv
 rtl/video_timings.vhd
